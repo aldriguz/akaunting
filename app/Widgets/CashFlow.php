@@ -2,16 +2,17 @@
 
 namespace App\Widgets;
 
-use Akaunting\Apexcharts\Charts as Apexcharts;
+use Akaunting\Apexcharts\Chart;
 use App\Abstracts\Widget;
 use App\Models\Banking\Transaction;
+use App\Traits\Charts;
 use App\Traits\Currencies;
 use App\Traits\DateTime;
 use App\Utilities\Date;
 
 class CashFlow extends Widget
 {
-    use Currencies, DateTime;
+    use Charts, Currencies, DateTime;
 
     public $default_name = 'widgets.cash_flow';
 
@@ -53,9 +54,14 @@ class CashFlow extends Widget
             'legend' => [
                 'position'          => 'top',
             ],
+            'yaxis' => [
+                'labels' => [
+                    'formatter'     => $this->getFormatLabel(),
+                ],
+            ],
         ];
 
-        $chart = new Apexcharts();
+        $chart = new Chart();
 
         $chart->setType('line')
             ->setOptions($options)

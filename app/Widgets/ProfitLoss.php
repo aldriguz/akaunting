@@ -6,7 +6,7 @@ use App\Abstracts\Widget;
 use App\Utilities\Recurring;
 use App\Models\Document\Document;
 use App\Models\Banking\Transaction;
-use Akaunting\Apexcharts\Charts as Apexcharts;
+use Akaunting\Apexcharts\Chart;
 use App\Traits\Currencies;
 use App\Traits\DateTime;
 use App\Utilities\Date;
@@ -39,13 +39,19 @@ class ProfitLoss extends Widget
 
         $colors = $this->getColors();
 
-        $chart = new Apexcharts();
+        $chart = new Chart();
 
         $options = [
             'legend' => [
                 'position'      => 'top',
                 'markers' => [
                     'radius'    => '12',
+                ],
+            ],
+
+            'yaxis' => [
+                'labels'        => [
+                    'formatter' => $this->getFormatLabel(),
                 ],
             ],
         ];

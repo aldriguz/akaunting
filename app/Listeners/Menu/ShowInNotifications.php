@@ -32,6 +32,7 @@ class ShowInNotifications
 
             foreach ($updates as $key => $update) {
                 $prefix = ($key == 'core') ? 'core' : 'module';
+                $name = ($prefix == 'core') ? 'Akaunting' : module($key)->getName();
 
                 $new = new DatabaseNotification();
                 $new->id = $key;
@@ -39,8 +40,8 @@ class ShowInNotifications
                 $new->notifiable_type = "users";
                 $new->notifiable_id = user()->id;
                 $new->data = [
-                    'title' => $key . ' (v' . $update . ')',
-                    'description' => '<a href="' . route('updates.index') . '">' . trans('install.update.' . $prefix) . '</a>',
+                    'title' => $name . ' (v' . $update . ')',
+                    'description' => '<a href="' . route('updates.index') . '">' . trans('install.update.' . $prefix, ['module' => $name]) . '</a>',
                 ];
                 $new->created_at = \Carbon\Carbon::now();
 
@@ -58,6 +59,13 @@ class ShowInNotifications
                 continue;
             }
 
+            $app_url = route('apps.app.show', [
+                'alias'         => $new_app->alias,
+                'utm_source'    => 'notification',
+                'utm_medium'    => 'app',
+                'utm_campaign'  => str_replace('-', '_', $new_app->alias),
+            ]);
+
             $new = new DatabaseNotification();
             $new->id = $key;
             $new->type = 'new-apps';
@@ -65,7 +73,7 @@ class ShowInNotifications
             $new->notifiable_id = user()->id;
             $new->data = [
                 'title' => $new_app->name,
-                'description' => '', // $new_app->message,
+                'description' => trans('notifications.new_apps', ['app' => $new_app->name, 'url' => $app_url]),
                 'alias' => $new_app->alias,
             ];
             $new->created_at = $new_app->started_at->date;

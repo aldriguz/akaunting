@@ -4,7 +4,6 @@ return [
 
     'dashboards'            => 'Informācijas panelis',
     'items'                 => 'Preces|Preces',
-    'incomes'               => 'Ienākumi|Ienākumi',
     'invoices'              => 'Rēķini|Rēķini',
     'recurring_invoices'    => 'Atkārtots rēķins|Atkārtoti rēķini',
     'customers'             => 'Pircēji|Pircēji',
@@ -70,6 +69,7 @@ return [
     'invitations'           => 'Ielūgums|Ielūgumi',
     'attachments'           => 'Pielikums|Pielikumi',
     'histories'             => 'Vēsture|Vēstures',
+    'your_notifications'    => 'Jūsu paziņojums|Jūsu paziņojumi',
 
     'welcome'               => 'Laipni lūdzam',
     'banking'               => 'Banka',
@@ -184,6 +184,7 @@ return [
     'no_matching_data'      => 'Nav sakritību datos',
     'clear_cache'           => 'Notīrīt kešatmiņu',
     'go_to_dashboard'       => 'Doties uz galveno paneli',
+    'create_first_invoice'  => 'Izveidojiet savu pirmo rēķinu',
     'is'                    => 'ir',
     'isnot'                 => 'nav',
     'recurring_and_more'    => 'Atkārtojas un vairāk..',
@@ -199,7 +200,6 @@ return [
     'email_send_me'         => 'Nosūtīt kopiju man uz :email',
     'connect'               => 'Pieslēgties',
     'assign'                => 'Piešķirt',
-    'your_notifications'    => 'Jūsu paziņojums|Jūsu paziņojumi',
     'new'                   => 'Jauns',
     'new_more'              => 'Jauns...',
     'number'                => 'Numurs',
@@ -270,6 +270,8 @@ return [
     'placeholder' => [
         'search'            => 'Ierakstiet, lai meklētu..',
         'search_and_filter' => 'Meklēšanas vai filtrēšanas rezultāti..',
+        'select_and_filter' => 'Tālāk atlasiet vienu no pieejamajām opcijām',
+        'enter_and_filter'  => 'Nospiediet Enter, lai filtrētu rezultātus, vai iestatiet jaunu filtru',
         'contact_search'    => 'Ierakstiet :type nosaukumu',
         'item_search'       => 'Ierakstiet vienuma nosaukumu',
     ],

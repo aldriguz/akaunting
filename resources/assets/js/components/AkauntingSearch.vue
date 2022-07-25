@@ -15,7 +15,7 @@
                 <span v-if="filter.operator == '='" class="material-icons text-2xl">drag_handle</span>
                 <span v-else-if="filter.operator == '><'" class="material-icons text-2xl transform rotate-90">height</span>
 
-                <img v-else :src="equal_image" class="w-5 h-5 object-cover block" />
+                <img v-else :src="not_equal_image" class="w-5 h-5 object-cover block" />
 
                 <i v-if="!filter.value" class="mt-1 ltr:-right-2 rtl:left-0 rtl:right-0 el-tag__close el-icon-close " style="font-size: 16px;" @click="onFilterDelete(index)"></i>
             </span>
@@ -31,9 +31,9 @@
             <input
             v-if="!show_date"
             type="text"
-            class="w-full bg-transparent text-black text-sm border-0 px-10 pb-0 focus:outline-none focus:ring-transparent focus:border-purple-100"
-            :class="[{'px-4' : !show_icon}]"
-            :placeholder="placeholder"
+            class="w-full bg-transparent text-black text-sm border-0 pb-0 focus:outline-none focus:ring-transparent focus:border-purple-100"
+            :class="!show_icon ? 'px-4' : 'px-10'"
+            :placeholder="dynamicPlaceholder"
             :ref="'input-search-field-' + _uid"
             v-model="search"
             @focus="onInputFocus"
@@ -47,8 +47,9 @@
                 @on-open="onInputFocus"
                 @blur="onBlur"
                 :config="dateConfig"
-                class="w-full bg-transparent text-black text-sm border-0 px-10 pb-0 focus:outline-none focus:ring-transparent focus:border-purple-100 datepicker"
-                :placeholder="placeholder"
+                class="w-full bg-transparent text-black text-sm border-0 pb-0 focus:outline-none focus:ring-transparent focus:border-purple-100 datepicker"
+                :class="!show_icon ? 'px-4' : 'px-10'"
+                :placeholder="dynamicPlaceholder"
                 :ref="'input-search-date-field-' + _uid"
                 value=""
                 @focus="onInputFocus"
@@ -56,7 +57,13 @@
                 @keyup.enter="onInputConfirm"
             >
             </flat-picker>
-                <span class="material-icons absolute bottom-1 ltr:left-3 rtl:right-3 text-lg text-black" style="z-index:-1;">search</span>
+                <span
+                    v-if="show_icon"
+                    class="material-icons absolute bottom-1 ltr:left-3 rtl:right-3 text-lg text-black"
+                    style="z-index:-1;"
+                >
+                    search
+                </span>
 
             <button type="button" class="absolute ltr:right-0 rtl:left-0 top-2 clear" v-if="show_close_icon" @click="onSearchAndFilterClear">
                 <span class="material-icons text-sm">close</span>
@@ -73,7 +80,7 @@
             </div>
 
             <div :id="'search-field-operator-' + _uid" class="absolute top-12 ltr:left-8 rtl:right-8 py-2 bg-white rounded-md border border-gray-200 shadow-xl z-20 list-none dropdown-menu operator" :class="[{'show': visible.operator}]">
-                <li ref="" class="w-full flex items-center px-2 h-9 leading-9 whitespace-nowrap">
+                <li v-if="equal" ref="" class="w-full flex items-center px-2 h-9 leading-9 whitespace-nowrap">
                     <button type="button" class="w-full h-full flex items-center rounded-md px-2 text-sm hover:bg-lilac-100" @click="onOperatorSelected('=')">
                         <span class="material-icons text-2xl transform">drag_handle</span>
                         <span class="text-gray hidden">{{ operatorIsText }}
@@ -81,9 +88,9 @@
                     </button>
                 </li>
 
-                <li ref="" class="w-full flex items-center px-2 h-9 leading-9 whitespace-nowrap">
+                <li v-if="not_equal" ref="" class="w-full flex items-center px-2 h-9 leading-9 whitespace-nowrap">
                     <button type="button" class="w-full h-full flex items-center rounded-md px-2 text-sm hover:bg-lilac-100" @click="onOperatorSelected('!=')">
-                        <img :src="equal_image" class="w-6 h-6 block m-auto" />
+                        <img :src="not_equal_image" class="w-6 h-6 block m-auto" />
                         <span class="text-gray hidden">{{ operatorIsNotText }}</span>
                     </button>
                 </li>
@@ -125,6 +132,12 @@ export default {
             type: String,
             default: 'Search or filter results...',
             description: 'Input placeholder'
+        },
+        selectPlaceholder: {
+            type: String,
+        },
+        enterPlaceholder: {
+            type: String,
         },
         searchText: {
             type: String,
@@ -189,6 +202,8 @@ export default {
                 values: false,
             },
 
+            equal: true,
+            not_equal: true,
             range: false,
             option_values: [],
             selected_options: [],
@@ -199,8 +214,10 @@ export default {
             show_date: false,
             show_close_icon: false,
             show_icon: true,
-            equal_image: app_url +  "/public/img/tailwind_icons/not-equal.svg",
-            input_focus: false
+            not_equal_image: app_url +  "/public/img/tailwind_icons/not-equal.svg",
+            input_focus: false,
+            defaultPlaceholder: this.placeholder,
+            dynamicPlaceholder: this.placeholder,
         };
     },
 
@@ -370,9 +387,12 @@ export default {
         },
 
         onOptionSelected(value) {
-            this.show_icon = false;
             this.current_value = value;
+            this.equal = true;
+            this.not_equal = true;
             this.range = false;
+
+            this.onChangeSearchAndFilterText(this.selectPlaceholder, false);
 
             let option = false;
             let option_url = false;
@@ -395,6 +415,12 @@ export default {
 
                     if (typeof this.filter_list[i].type !== 'undefined' && this.filter_list[i].type == 'date') {
                         this.range = true;
+                    }
+
+                    if (typeof this.filter_list[i].operators !== 'undefined' && Object.keys(this.filter_list[i].operators).length) {
+                        this.equal = (typeof this.filter_list[i].operators.equal) ? this.filter_list[i].operators.equal : this.equal;
+                        this.not_equal = (typeof this.filter_list[i].operators['not_equal']) ? this.filter_list[i].operators['not_equal'] : this.not_equal;
+                        this.range = (typeof this.filter_list[i].operators['range']) ? this.filter_list[i].operators['range'] : this.range;
                     }
 
                     this.selected_options.push(this.filter_list[i]);
@@ -505,6 +531,8 @@ export default {
             this.show_close_icon = true;
             let select_value = false;
 
+            this.onChangeSearchAndFilterText(this.enterPlaceholder, false);
+
             for (let i = 0; i < this.values.length; i++) {
                 if (this.values[i].key == value) {
                     select_value = this.values[i].value;
@@ -561,6 +589,12 @@ export default {
             this.selected_values.splice(index, 1);
 
             this.show_date = false;
+            
+            if (this.filter_index == 0) {
+                this.onChangeSearchAndFilterText(this.defaultPlaceholder, true);
+            } else {
+                this.show_icon = false;
+            }
 
             this.filter_last_step = 'options';
         },
@@ -572,6 +606,11 @@ export default {
             Cookies.remove('search-string');
 
             this.onInputConfirm();
+        },
+
+        onChangeSearchAndFilterText(arg, param) {
+            this.dynamicPlaceholder = arg;
+            this.show_icon = param;
         },
 
         convertOption(options) {
@@ -742,6 +781,9 @@ export default {
     },
 
     mounted() {
+        if (this.filter_index > 0) {
+            this.onChangeSearchAndFilterText(this.enterPlaceholder, false);
+        }
     },
 
     computed: {

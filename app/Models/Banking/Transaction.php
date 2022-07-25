@@ -21,9 +21,11 @@ class Transaction extends Model
     use Cloneable, Currencies, DateTime, HasFactory, Media, Recurring, Transactions;
 
     public const INCOME_TYPE = 'income';
+    public const INCOME_TRANSFER_TYPE = 'income-transfer';
     public const INCOME_SPLIT_TYPE = 'income-split';
     public const INCOME_RECURRING_TYPE = 'income-recurring';
     public const EXPENSE_TYPE = 'expense';
+    public const EXPENSE_TRANSFER_TYPE = 'expense-transfer';
     public const EXPENSE_SPLIT_TYPE = 'expense-split';
     public const EXPENSE_RECURRING_TYPE = 'expense-recurring';
 
@@ -72,7 +74,7 @@ class Transaction extends Model
      *
      * @var array
      */
-    public $sortable = ['type', 'number', 'paid_at', 'amount','category.name', 'account.name', 'customer.name', 'invoice.document_number'];
+    public $sortable = ['type', 'number', 'paid_at', 'amount', 'category.name', 'account.name', 'customer.name', 'invoice.document_number'];
 
     /**
      * Clonable relationships.
@@ -103,7 +105,7 @@ class Transaction extends Model
 
     public function category()
     {
-        return $this->belongsTo('App\Models\Setting\Category')->withDefault(['name' => trans('general.na')]);
+        return $this->belongsTo('App\Models\Setting\Category')->withoutGlobalScope('App\Scopes\Category')->withDefault(['name' => trans('general.na')]);
     }
 
     public function children()
@@ -141,6 +143,19 @@ class Transaction extends Model
         return $this->morphOne('App\Models\Common\Recurring', 'recurable');
     }
 
+    public function transfer()
+    {
+        if ($this->type == static::INCOME_TRANSFER_TYPE) {
+            return $this->belongsTo('App\Models\Banking\Transfer', 'id', 'income_transaction_id');
+        }
+
+        if ($this->type == static::EXPENSE_TRANSFER_TYPE) {
+            return $this->belongsTo('App\Models\Banking\Transfer', 'id', 'expense_transaction_id');
+        }
+
+        return null;
+    }
+
     public function splits()
     {
         return $this->hasMany('App\Models\Banking\Transaction', 'split_id');
@@ -165,6 +180,11 @@ class Transaction extends Model
         return $query->whereIn($this->qualifyColumn('type'), (array) $this->getIncomeTypes());
     }
 
+    public function scopeIncomeTransfer(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('type'), '=', self::INCOME_TRANSFER_TYPE);
+    }
+
     public function scopeIncomeRecurring(Builder $query): Builder
     {
         return $query->where($this->qualifyColumn('type'), '=', self::INCOME_RECURRING_TYPE);
@@ -175,9 +195,24 @@ class Transaction extends Model
         return $query->whereIn($this->qualifyColumn('type'), (array) $this->getExpenseTypes());
     }
 
+    public function scopeExpenseTransfer(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('type'), '=', self::EXPENSE_TRANSFER_TYPE);
+    }
+
     public function scopeExpenseRecurring(Builder $query): Builder
     {
         return $query->where($this->qualifyColumn('type'), '=', self::EXPENSE_RECURRING_TYPE);
+    }
+
+    public function scopeIsTransfer(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('type'), 'like', '%-transfer');
+    }
+
+    public function scopeIsNotTransfer(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('type'), 'not like', '%-transfer');
     }
 
     public function scopeIsRecurring(Builder $query): Builder
@@ -198,16 +233,6 @@ class Transaction extends Model
     public function scopeIsNotSplit(Builder $query): Builder
     {
         return $query->where($this->qualifyColumn('type'), 'not like', '%-split');
-    }
-
-    public function scopeIsTransfer(Builder $query): Builder
-    {
-        return $query->where('category_id', '=', Category::transfer());
-    }
-
-    public function scopeIsNotTransfer(Builder $query): Builder
-    {
-        return $query->where('category_id', '<>', Category::transfer());
     }
 
     public function scopeIsDocument(Builder $query): Builder
@@ -332,16 +357,6 @@ class Transaction extends Model
     }
 
     /**
-     * Check if the record is attached to a transfer.
-     *
-     * @return bool
-     */
-    public function getHasTransferRelationAttribute()
-    {
-        return (bool) ($this->category?->id == $this->category?->transfer());
-    }
-
-    /**
      * Get the title of type.
      *
      * @return string
@@ -349,6 +364,9 @@ class Transaction extends Model
     public function getTypeTitleAttribute($value)
     {
         $type = $this->getRealTypeOfRecurringTransaction($this->type);
+        $type = $this->getRealTypeOfTransferTransaction($type);
+
+        $type = str_replace('-', '_', $type);
 
         return $value ?? trans_choice('general.' . Str::plural($type), 1);
     }
@@ -444,7 +462,7 @@ class Transaction extends Model
         } catch (\Exception $e) {}
 
         try {
-            if (! $this->reconciled) {
+            if (! $this->reconciled && $this->isNotTransferTransaction()) {
                 $actions[] = [
                     'title' => trans('general.edit'),
                     'icon' => 'edit',
@@ -458,7 +476,7 @@ class Transaction extends Model
         } catch (\Exception $e) {}
 
         try {
-            if (empty($this->document_id)) {
+            if (empty($this->document_id) && $this->isNotTransferTransaction()) {
                 $actions[] = [
                     'title' => trans('general.duplicate'),
                     'icon' => 'file_copy',
@@ -472,7 +490,7 @@ class Transaction extends Model
         } catch (\Exception $e) {}
 
         try {
-            if ($this->is_splittable && empty($this->document_id) && empty($this->recurring)) {
+            if ($this->is_splittable && empty($this->document_id) && empty($this->recurring) && $this->isNotTransferTransaction()) {
                 $connect = [
                     'type' => 'button',
                     'title' => trans('general.connect'),
@@ -480,7 +498,7 @@ class Transaction extends Model
                     'permission' => 'create-banking-transactions',
                     'attributes' => [
                         'id' => 'index-transactions-more-actions-connect-' . $this->id,
-                        '@click' => 'onConnect(\'' . route('transactions.dial', $this->id) . '\')',
+                        '@click' => 'onConnectTransactions(\'' . route('transactions.dial', $this->id) . '\')',
                     ],
                 ];
 
@@ -519,54 +537,58 @@ class Transaction extends Model
         } catch (\Exception $e) {}
 
         if ($prefix != 'recurring-transactions') {
-            $actions[] = [
-                'type' => 'divider',
-            ];
-
-            try {
+            if ($this->isNotTransferTransaction()) {
                 $actions[] = [
-                    'type' => 'button',
-                    'title' => trans('general.share_link'),
-                    'icon' => 'share',
-                    'url' => route('modals.transactions.share.create', $this->id),
-                    'permission' => 'read-banking-transactions',
-                    'attributes' => [
-                        'id' => 'index-more-actions-share-' . $this->id,
-                        '@click' => 'onShareLink("' . route('modals.transactions.share.create', $this->id) . '")',
-                    ],
+                    'type' => 'divider',
                 ];
-            } catch (\Exception $e) {}
 
-            try {
-                $actions[] = [
-                    'type' => 'button',
-                    'title' => trans('invoices.send_mail'),
-                    'icon' => 'email',
-                    'url' => route('modals.transactions.emails.create', $this->id),
-                    'permission' => 'read-banking-transactions',
-                    'attributes' => [
-                        'id' => 'index-more-actions-send-email-' . $this->id,
-                        '@click' => 'onEmail("' . route('modals.transactions.emails.create', $this->id) . '")',
-                    ],
-                ];
-            } catch (\Exception $e) {}
-
-            $actions[] = [
-                'type' => 'divider',
-            ];
-
-            try {
-                if (! $this->reconciled) {
+                try {
                     $actions[] = [
-                        'type' => 'delete',
-                        'icon' => 'delete',
-                        'text' => ! empty($this->recurring) ? 'transactions' : 'recurring_template',
-                        'route' => $prefix. '.destroy',
-                        'permission' => 'delete-banking-transactions',
-                        'model' => $this,
+                        'type' => 'button',
+                        'title' => trans('general.share_link'),
+                        'icon' => 'share',
+                        'url' => route('modals.transactions.share.create', $this->id),
+                        'permission' => 'read-banking-transactions',
+                        'attributes' => [
+                            'id' => 'index-more-actions-share-' . $this->id,
+                            '@click' => 'onShareLink("' . route('modals.transactions.share.create', $this->id) . '")',
+                        ],
                     ];
-                }
-            } catch (\Exception $e) {}
+                } catch (\Exception $e) {}
+
+                try {
+                    if (! empty($this->contact) && $this->contact->email) {
+                        $actions[] = [
+                            'type' => 'button',
+                            'title' => trans('invoices.send_mail'),
+                            'icon' => 'email',
+                            'url' => route('modals.transactions.emails.create', $this->id),
+                            'permission' => 'read-banking-transactions',
+                            'attributes' => [
+                                'id' => 'index-more-actions-send-email-' . $this->id,
+                                '@click' => 'onEmail("' . route('modals.transactions.emails.create', $this->id) . '")',
+                            ],
+                        ];
+                    }
+                } catch (\Exception $e) {}
+
+                $actions[] = [
+                    'type' => 'divider',
+                ];
+
+                try {
+                    if (! $this->reconciled) {
+                        $actions[] = [
+                            'type' => 'delete',
+                            'icon' => 'delete',
+                            'text' => ! empty($this->recurring) ? 'transactions' : 'recurring_template',
+                            'route' => $prefix. '.destroy',
+                            'permission' => 'delete-banking-transactions',
+                            'model' => $this,
+                        ];
+                    }
+                } catch (\Exception $e) {}
+            }
         } else {
             try {
                 $actions[] = [

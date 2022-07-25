@@ -29,10 +29,12 @@
         @stack('recurring_message_end')
 
         @stack('row_create_start')
+        @if (! $hideCreated)
         <x-transactions.show.create
             type="{{ $type }}"
             :transaction="$transaction"
         />
+        @endif
         @stack('row_create_end')
 
         @stack('schedule_start')
@@ -52,6 +54,15 @@
             />
         @endif
         @stack('children_end')
+
+        @stack('transfer_start')
+        @if (! $hideTransfer)
+            <x-transactions.show.transfer
+                type="{{ $type }}"
+                :transaction="$transaction"
+            />
+        @endif
+        @stack('transfer_end')
 
         @stack('attachment_start')
         @if (! $hideAttachment)

@@ -2,7 +2,7 @@
 
 @if (! $hideButtonAddNew)
     @can($permissionCreate)
-        <x-link href="{{ route($routeButtonAddNew, ['type' => $type]) }}"  kind="primary">
+        <x-link href="{{ route($routeButtonAddNew, ['type' => $type]) }}" kind="primary">
             {{ trans($textButtonAddNew) }}
         </x-link>
     @endcan
@@ -10,7 +10,7 @@
 
 @stack('edit_button_start')
 
-@if (! $transaction->hasTransferRelation)
+@if (! $transaction->reconciled && $transaction->isNotTransferTransaction())
     @if (! $hideButtonEdit)
         @can($permissionUpdate)
             <x-link href="{{ route($routeButtonEdit, [$transaction->id, 'type' => $type]) }}">

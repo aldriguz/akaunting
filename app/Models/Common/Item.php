@@ -4,6 +4,7 @@ namespace App\Models\Common;
 
 use App\Abstracts\Model;
 use App\Models\Document\Document;
+use App\Utilities\Str;
 use App\Traits\Currencies;
 use App\Traits\Media;
 use Bkwld\Cloner\Cloneable;
@@ -54,7 +55,7 @@ class Item extends Model
 
     public function category()
     {
-        return $this->belongsTo('App\Models\Setting\Category')->withDefault(['name' => trans('general.na')]);
+        return $this->belongsTo('App\Models\Setting\Category')->withoutGlobalScope('App\Scopes\Category')->withDefault(['name' => trans('general.na')]);
     }
 
     public function taxes()
@@ -136,6 +137,11 @@ class Item extends Model
         return $query->join('categories', 'categories.id', '=', 'items.category_id')
             ->orderBy('name', $direction)
             ->select('items.*');
+    }
+
+    public function getInitialsAttribute($value)
+    {
+        return Str::getInitials($this->name);
     }
 
     /**

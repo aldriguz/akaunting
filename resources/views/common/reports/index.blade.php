@@ -35,30 +35,34 @@
                     @foreach($category['reports'] as $report)
                         <div class="flex justify-between sm:col-span-3 p-1 group">
                             <div class="lg:w-80">
-                                <a href="{{ route('reports.show', $report->id) }}" class="flex">
+                                <x-link href="{{ route('reports.show', $report->id) }}" class="flex" override="class">
                                     <span class="material-icons-outlined text-5xl transform transition-all hover:scale-125 text-black-400">
                                         {{ $icons[$report->id] }}
                                     </span>
 
                                     <div class="ltr:ml-2 rtl:mr-2">
                                         <h2 class="mb-1">
-                                            <span class="border-b border-transparent transition-all group-hover:border-black">
-                                                {{ $report->name }}
-                                            </span>
+                                            <x-link.hover group-hover>
+                                                {!! $report->name !!}
+                                            </x-link.hover>
                                         </h2>
 
-                                        <span class="text-black-400 text-sm">{{ $report->description }}</span>
+                                        <span class="text-black-400 text-sm">
+                                            {!! $report->description !!}
+                                        </span>
                                     </div>
-                                </a>
+                                </x-link>
                             </div>
 
-                            <div class="flex items-start">
+                            <div class="flex items-start ltr:space-x-2 rtl:space-x-reverse">
                                 <livewire:report.pin :categories="$categories" :report-id="$report->id" />
 
                                 @canany(['create-common-reports', 'update-common-reports', 'delete-common-reports'])
                                 <x-dropdown id="widget-{{ $category_id }}-{{ $report->id }}">
                                     <x-slot name="trigger" class="flex" override="class">
-                                        <span class="material-icons-outlined text-lg px-1 py-0.5 cursor-pointer hover:bg-gray-100 hover:rounded-lg hover:shadow-md">more_vert</span>
+                                        <span class="w-8 h-8 flex items-center justify-center px-2 py-2 rtl:mr-4 hover:bg-gray-100 rounded-xl text-purple text-sm font-medium leading-6">
+                                            <span class="material-icons">more_vert</span>
+                                        </span>
                                     </x-slot>
 
                                     @can('update-common-reports')

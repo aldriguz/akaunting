@@ -8,8 +8,10 @@
             <div class="flex items-center relative cursor-pointer">
                 <x-dropdown id="dashboard-list">
                     <x-slot name="trigger" class="flex items-center" override="class">
-                        <span class="text-2xl xl:text-5xl text-black font-light truncate border-b border-transparent transition-all hover:text-black-700 hover:border-black">
-                            {{ $dashboard->name }}
+                        <span class="text-2xl xl:text-5xl text-black font-light truncate">
+                            <x-button.hover color="to-black-700">
+                                {{ $dashboard->name }}
+                            </x-button.hover>
                         </span>
 
                         <svg class="w-5 h-5 mt-1 text-gray-400" x-description="Heroicon name: solid/selector" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -100,7 +102,9 @@
             <div class="dashboard-action">
                 <x-dropdown id="dropdown-dashboard-company">
                     <x-slot name="trigger" class="flex" override="class">
-                        <span id="dashboard-more-actions" class="material-icons-outlined text-4xl text-purple cursor-pointer hover:bg-gray-100 hover:rounded-lg hover:shadow-md">more_vert</span>
+                        <span id="dashboard-more-actions" class="w-8 h-8 flex items-center justify-center px-2 py-2 ltr:ml-2 rtl:mr-2 hover:bg-gray-100 rounded-xl text-purple text-sm font-medium leading-6">
+                            <span class="material-icons">more_vert</span>
+                        </span>
                     </x-slot>
 
                     @can('create-common-widgets')

@@ -2,6 +2,7 @@
     <base-input :label="title" :name="name"
         :readonly="readonly"
         :disabled="disabled"
+        :not-required="notRequired"
         :class="[
             {'readonly': readonly},
             {'disabled': disabled},
@@ -252,6 +253,11 @@ export default {
             type: Boolean,
             default: true,
             description: "Selectbox clearable status"
+        },
+
+        notRequired: {
+            type: Boolean,
+            default: false
         },
 
         disabled: {
@@ -693,7 +699,7 @@ export default {
 
                     let documentClasses = document.body.classList;
 
-                    documentClasses.remove("overflow-hidden");
+                    documentClasses.remove('overflow-y-hidden', 'overflow-overlay', '-ml-4');
                 }
             })
             .catch(error => {
@@ -712,7 +718,7 @@ export default {
 
             let documentClasses = document.body.classList;
 
-            documentClasses.remove("overflow-hidden");
+            documentClasses.remove('overflow-y-hidden', 'overflow-overlay', '-ml-4');
         },
 
         addModal() {

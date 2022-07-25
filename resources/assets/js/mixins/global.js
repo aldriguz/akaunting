@@ -24,6 +24,7 @@ import AkauntingConnectTransactions from './../components/AkauntingConnectTransa
 import AkauntingSwitch from './../components/AkauntingSwitch';
 import AkauntingSlider from './../components/AkauntingSlider';
 import AkauntingColor from './../components/AkauntingColor';
+import CardForm from './../components/CreditCard/CardForm';
 
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
@@ -61,6 +62,7 @@ export default {
         AkauntingSwitch,
         AkauntingSlider,
         AkauntingColor,
+        CardForm,
         [Select.name]: Select,
         [Option.name]: Option,
         [Steps.name]: Steps,
@@ -85,7 +87,22 @@ export default {
                 "thousands_separator":",",
             },
             all_currencies: [],
-            content_loading: true
+            content_loading: true,
+            connect: {
+                show: false,
+                currency: {},
+                documents: [],
+            },
+
+            cardData: {
+                cardName: '',
+                cardNumber: '',
+                cardMonth: '',
+                cardYear: '',
+                cardCvv: '',
+                storeCard: false,
+                card_id: 0,
+            },
         }
     },
 
@@ -627,7 +644,7 @@ export default {
 
                                 let documentClasses = document.body.classList;
 
-                                documentClasses.remove("modal-open");
+                                documentClasses.remove('overflow-y-hidden', 'overflow-overlay', '-ml-4');
                             },
                         }
                     })
@@ -656,6 +673,115 @@ export default {
                 copy_badge.classList.remove('flex');
                 copy_html.classList.remove('hidden');
             }, 800);
-        }
+        },
+
+        //connect transactions for account, document or etc.
+        onConnectTransactions(route) {
+            let dial_promise = Promise.resolve(window.axios.get(route));
+
+            dial_promise.then(response => {
+                this.connect.show = true;
+
+                this.connect.transaction = JSON.parse(response.data.transaction);
+
+                let currency = JSON.parse(response.data.currency);
+
+                this.connect.currency = {
+                    decimal_mark: currency.decimal_mark,
+                    precision: currency.precision,
+                    symbol: currency.symbol,
+                    symbol_first: currency.symbol_first,
+                    thousands_separator: currency.thousands_separator,
+                };
+    
+                this.connect.documents = JSON.parse(response.data.documents);
+            })
+            .catch(error => {
+            })
+            .finally(function () {
+                // always executed
+            });
+        },
+
+        // if you use modal dynamic form. This method ger url form and posr it.
+        onModalAddNew(url) {
+            let modal = {
+                show: true,
+                title: '',
+                html: '',
+                buttons:{}
+            };
+
+            Promise.resolve(window.axios.get(url))
+            .then(response => {
+                if (response.data.success) {
+                    modal.title = response.data.title;
+                    modal.html = response.data.html;
+                    modal.buttons = response.data.buttons;
+
+                    this.component = Vue.component('add-new-component', (resolve, reject) => {
+                        resolve({
+                            template: '<div id="dynamic-add-new-modal-component"><akaunting-modal-add-new modal-dialog-class="max-w-screen-lg" :show="modal.show" :buttons="modal.buttons" :title="modal.title" :message="modal.html" :is_component=true @submit="onSubmit" @cancel="onCancel"></akaunting-modal-add-new></div>',
+
+                            components: {
+                                AkauntingDropzoneFileUpload,
+                                AkauntingContactCard,
+                                AkauntingCompanyEdit,
+                                AkauntingEditItemColumns,
+                                AkauntingItemButton,
+                                AkauntingDocumentButton,
+                                AkauntingSearch,
+                                AkauntingRadioGroup,
+                                AkauntingSelect,
+                                AkauntingSelectRemote,
+                                AkauntingMoney,
+                                AkauntingModal,
+                                AkauntingModalAddNew,
+                                AkauntingDate,
+                                AkauntingRecurring,
+                                AkauntingHtmlEditor,
+                                AkauntingCountdown,
+                                AkauntingCurrencyConversion,
+                                AkauntingConnectTransactions,
+                                AkauntingSwitch,
+                                AkauntingSlider,
+                                AkauntingColor,
+                                CardForm,
+                                [Select.name]: Select,
+                                [Option.name]: Option,
+                                [Steps.name]: Steps,
+                                [Step.name]: Step,
+                                [Button.name]: Button,
+                                [Link.name]: Link,
+                                [Tooltip.name]: Tooltip,
+                                [ColorPicker.name]: ColorPicker,
+                            },
+
+                            data: function () {
+                                return {
+                                    form:{},
+                                    modal: modal,
+                                }
+                            },
+
+                            methods: {
+                                onSubmit(event) {
+                                    this.$emit('submit', event);
+                                    event.submit();
+                                },
+
+                                onCancel() {
+                                    this.modal.show = false;
+                                    this.modal.html = null;
+                                },
+                            }
+                        })
+                    })
+                }
+            })
+            .catch(e => {
+                this.errors.push(e);
+            })
+        },
     }
 }

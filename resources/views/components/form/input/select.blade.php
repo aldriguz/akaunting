@@ -4,7 +4,7 @@
 <akaunting-select
 @endif
     @class([
-        'form-group relative',
+        'relative',
         $formGroupClass,
         'required' => $required,
         'readonly' => $readonly,
@@ -119,6 +119,14 @@
     :clearable="{{ $attributes['clearable'] }}"
     @else
     clearable
+    @endif
+
+    @if (isset($attributes['no-arrow']))
+    :no-arrow="{{ $attributes['no-arrow'] }}"
+    @endif
+
+    @if (!$required)
+    :not-required={{ $required ? 'false' : 'true' }}
     @endif
 
     @if (isset($attributes['v-disabled']))

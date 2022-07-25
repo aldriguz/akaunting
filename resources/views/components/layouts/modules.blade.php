@@ -7,14 +7,16 @@
     </x-layouts.modules.head>
 
     @mobile
-    <body class="g-sidenav-hidden bg-body overflow-overlay">
+    <body class="g-sidenav-hidden bg-body">
     @elsemobile
-    <body class="g-sidenav-show bg-body overflow-overlay">
+    <body class="g-sidenav-show bg-body">
     @endmobile
 
         @stack('body_start')
 
         <x-layouts.admin.menu />
+
+        <x-loading.content />
 
         <div class="main-content xl:ltr:ml-64  xl:rtl:mr-64 transition-all ease-in-out" id="panel">
             <div id="main-body">

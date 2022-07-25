@@ -2,9 +2,11 @@
     <base-input v-if="title" :label="title" :name="name"
         :readonly="readonly"
         :disabled="disabled"
+        :not-required="notRequired"
         :class="[
             {'readonly': readonly},
             {'disabled': disabled},
+            {'no-arrow': noArrow},
             formClasses
         ]"
         :error="formError">
@@ -346,10 +348,21 @@ export default {
             description: "Selectbox disabled status"
         },
 
+        noArrow: {
+            type: Boolean,
+            default: false,
+            description: "Selectbox show arrow"
+        },
+
         clearable: {
             type: Boolean,
             default: true,
             description: "Selectbox clearable status"
+        },
+
+        notRequired: {
+            type: Boolean,
+            default: false
         },
 
         disabled: {
@@ -908,7 +921,7 @@ export default {
 
                     let documentClasses = document.body.classList;
 
-                    documentClasses.remove("overflow-hidden");
+                    documentClasses.remove('overflow-y-hidden', 'overflow-overlay', '-ml-4');
                 }
             })
             .catch(error => {
@@ -927,7 +940,7 @@ export default {
 
             let documentClasses = document.body.classList;
 
-            documentClasses.remove("overflow-hidden");
+            documentClasses.remove('overflow-y-hidden', 'overflow-overlay', '-ml-4');
         },
 
         addModal() {

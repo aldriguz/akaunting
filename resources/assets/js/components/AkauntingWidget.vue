@@ -7,10 +7,8 @@
         <template #modal-body>
             <div class="py-1 px-5 bg-body">
                 <div class="grid sm:grid-cols-6 gap-x-8 gap-y-6 my-3.5">
-                    <div class="form-group sm:col-span-3">
+                    <div class="sm:col-span-3">
                         <base-input
-                            required
-                            class="required"
                             v-model="form.name"
                             :label="text.name"
                             :placeholder="placeholder.name"
@@ -20,10 +18,8 @@
                         </base-input>
                     </div>
 
-                    <div class="form-group sm:col-span-3">
+                    <div class="sm:col-span-3">
                         <base-input
-                            required
-                            class="required"
                             :error="form.errors.class[0]"
                             :label="text.type">
                             
@@ -40,8 +36,8 @@
                         </base-input>
                     </div>
 
-                    <div class="form-group sm:col-span-3">
-                        <base-input :label="text.width">
+                    <div class="sm:col-span-3">
+                        <base-input :label="text.width" not-required>
                             <el-select
                                 v-model="form.width" filterable
                                 :placeholder="placeholder.width">
@@ -54,8 +50,9 @@
                         </base-input>
                     </div>
 
-                    <div class="form-group sm:col-span-3">
+                    <div class="sm:col-span-3">
                         <base-input
+                            not-required
                             v-model="form.sort"
                             :label="text.sort"
                             :placeholder="placeholder.sort"
@@ -253,7 +250,7 @@ export default {
         onCancel() {
             let documentClasses = document.body.classList;	
 
-            documentClasses.remove("overflow-hidden");
+            documentClasses.remove('overflow-y-hidden', 'overflow-overlay', '-ml-4');
 
             this.display = false;
             this.form.name = '';
@@ -272,9 +269,9 @@ export default {
             let documentClasses = document.body.classList;
 
             if (val) {
-                documentClasses.add("overflow-hidden");
+                documentClasses.add('overflow-y-hidden', 'overflow-overlay', '-ml-4');
             } else {
-                documentClasses.remove("overflow-hidden");
+                documentClasses.remove('overflow-y-hidden', 'overflow-overlay', '-ml-4');
             }
         }
     }

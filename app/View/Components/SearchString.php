@@ -4,11 +4,12 @@ namespace App\View\Components;
 
 use App\Abstracts\View\Component;
 use App\Traits\DateTime;
+use App\Traits\Translations;
 use Illuminate\Support\Str;
 
 class SearchString extends Component
 {
-    use DateTime;
+    use DateTime, Translations;
 
     public $filters;
 
@@ -16,6 +17,11 @@ class SearchString extends Component
 
     /** string */
     public $model;
+
+    public $skip_columns = [
+        'created_at',
+        'updated_at',
+    ];
 
     /**
      * Create a new component instance.
@@ -46,7 +52,12 @@ class SearchString extends Component
 
                 foreach ($columns as $column => $options) {
                     // This column skip for filter
-                    if (!empty($options['searchable'])) {
+                    if (! empty($options['searchable'])) {
+                        continue;
+                    }
+
+                    // This column skip for filter
+                    if (in_array($column, $this->skip_columns)) {
                         continue;
                     }
 
@@ -203,16 +214,16 @@ class SearchString extends Component
             $values = [
                 [
                     'key' => 0,
-                    'value' => empty($options['translation']) ? trans('general.no') : trans($options['translation'][0]),
+                    'value' => empty($options['translation']) ? trans('general.no') : $this->findTranslation($options['translation'][0], 1),
                 ],
                 [
                     'key' => 1,
-                    'value' => empty($options['translation']) ? trans('general.yes') : trans($options['translation'][1]),
+                    'value' => empty($options['translation']) ? trans('general.yes') : $this->findTranslation($options['translation'][1], 1),
                 ],
             ];
         } else if (isset($options['values'])) {
             foreach ($options['values'] as $key => $value) {
-                $values[$key] = trans($value);
+                $values[$key] = $this->findTranslation($value, 1);
             }
         } else if ($search = request()->get('search', false)) {
             $fields = explode(' ', $search);

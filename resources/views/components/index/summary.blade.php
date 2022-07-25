@@ -22,11 +22,15 @@
             {!! $first !!}
         @elseif (! empty($first))
             <div class="w-1/2 sm:w-1/3 text-center">
+                @if ($first->attributes->has('tooltip'))
+                <x-tooltip id="tooltip-summary-first" placement="top" message="{!! $first->attributes->get('tooltip') !!}">
+                @endif
+
                 @if ($first->attributes->has('href'))
-                <a href="{{ $first->attributes->get('hef') }}" class="group">
+                <a href="{{ $first->attributes->get('href') }}" class="group">
                 @endif
                     @php $text_color = $first->attributes->has('text-color') ? $first->attributes->get('text-color') : 'text-purple group-hover:text-purple-700'; @endphp
-                    <div @class(['relative text-xl sm:text-6xl', $text_color, 'mb-2'])>
+                    <div @class(['relative text-xl sm:text-6xl', $text_color, 'mb-2', $first->attributes->get('class')])>
                         {!! $first->attributes->get('amount') !!}
                         <span class="w-8 absolute left-0 right-0 m-auto -bottom-1 bg-gray-200 transition-all group-hover:bg-gray-900" style="height: 1px;"></span>
                     </div>
@@ -36,6 +40,10 @@
                     </span>
                 @if ($first->attributes->has('href'))
                 </a>
+                @endif
+
+                @if ($first->attributes->has('tooltip'))
+                </x-tooltip>
                 @endif
             </div>
 
@@ -50,11 +58,15 @@
             {!! $second !!}
         @elseif (! empty($second))
             <div class="w-1/2 sm:w-1/3 text-center">
+                @if ($second->attributes->has('tooltip'))
+                <x-tooltip id="tooltip-summary-second" placement="top" message="{!! $second->attributes->get('tooltip') !!}">
+                @endif
+
                 @if ($second->attributes->has('href'))
-                <a href="{{ $second->attributes->get('hef') }}" class="group">
+                <a href="{{ $second->attributes->get('href') }}" class="group">
                 @endif
                     @php $text_color = $second->attributes->has('text-color') ? $second->attributes->get('text-color') : 'text-purple group-hover:text-purple-700'; @endphp
-                    <div @class(['relative text-xl sm:text-6xl', $text_color, 'mb-2'])>
+                    <div @class(['relative text-xl sm:text-6xl', $text_color, 'mb-2', $second->attributes->get('class')])>
                         {!! $second->attributes->get('amount') !!}
                         <span class="w-8 absolute left-0 right-0 m-auto -bottom-1 bg-gray-200 transition-all group-hover:bg-gray-900" style="height: 1px;"></span>
                     </div>
@@ -65,6 +77,10 @@
 
                 @if ($second->attributes->has('href'))
                 </a>
+                @endif
+
+                @if ($second->attributes->has('tooltip'))
+                </x-tooltip>
                 @endif
             </div>
 
@@ -79,11 +95,15 @@
             {!! $third !!}
         @elseif (! empty($third))
             <div class="w-1/2 sm:w-1/3 text-center">
+                @if ($third->attributes->has('tooltip'))
+                <x-tooltip id="tooltip-summary-third" placement="top" message="{!! $third->attributes->get('tooltip') !!}">
+                @endif
+
                 @if ($third->attributes->has('href'))
-                <a href="{{ $third->attributes->get('hef') }}" class="group">
+                <a href="{{ $third->attributes->get('href') }}" class="group">
                 @endif
                     @php $text_color = $third->attributes->has('text-color') ? $third->attributes->get('text-color') : 'text-purple group-hover:text-purple-700'; @endphp
-                    <div @class(['relative text-xl sm:text-6xl', $text_color, 'mb-2'])>
+                    <div @class(['relative text-xl sm:text-6xl', $text_color, 'mb-2', $third->attributes->get('class')])>
                         {!! $third->attributes->get('amount') !!}
                         <span class="w-8 absolute left-0 right-0 m-auto -bottom-1 bg-gray-200 transition-all group-hover:bg-gray-900" style="height: 1px;"></span>
                     </div>
@@ -93,6 +113,10 @@
                     </span>
                 @if ($third->attributes->has('href'))
                 </a>
+                @endif
+
+                @if ($third->attributes->has('tooltip'))
+                </x-tooltip>
                 @endif
             </div>
         @endif

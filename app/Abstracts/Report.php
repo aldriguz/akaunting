@@ -2,7 +2,7 @@
 
 namespace App\Abstracts;
 
-use Akaunting\Apexcharts\Charts as Apexcharts;
+use Akaunting\Apexcharts\Chart;
 use App\Events\Report\DataLoaded;
 use App\Events\Report\DataLoading;
 use App\Events\Report\FilterApplying;
@@ -61,9 +61,19 @@ abstract class Report
             'colors' => [
                 '#6da252',
             ],
+
+            'yaxis' => [
+                'labels' => [
+                    'formatter' => '',
+                ],
+            ],
         ],
         'donut' => [
-            //
+            'yaxis' => [
+                'labels' => [
+                    'formatter' => '',
+                ],
+            ],
         ],
     ];
 
@@ -101,6 +111,7 @@ abstract class Report
         $this->setRows();
         $this->loadData();
         $this->setColumnWidth();
+        $this->setChartLabelFormatter();
 
         $this->loaded = true;
     }
@@ -176,7 +187,7 @@ abstract class Report
 
     public function getBarChart($table_key)
     {
-        $chart = new Apexcharts();
+        $chart = new Chart();
 
         if (empty($this->chart)) {
             return $chart;
@@ -194,7 +205,7 @@ abstract class Report
 
     public function getDonutChart($table_key)
     {
-        $chart = new Apexcharts();
+        $chart = new Chart();
 
         if (empty($this->chart)) {
             return $chart;
@@ -224,7 +235,7 @@ abstract class Report
         foreach ($tmp_values as $id => $value) {
             $labels[$id] = $this->row_names[$table_key][$id];
 
-            $colors[$id] = ($group == 'category') ? Category::find($id)?->color : '#' . dechex(rand(0x000000, 0xFFFFFF));
+            $colors[$id] = ($group == 'category') ? Category::withSubCategory()->find($id)?->colorHexCode : '#' . dechex(rand(0x000000, 0xFFFFFF));
 
             $values[$id] = round(($value * 100 / $total), 0);
         }
@@ -283,6 +294,12 @@ abstract class Report
         }
 
         $this->column_name_width = $this->column_value_width = $width;
+    }
+
+    public function setChartLabelFormatter()
+    {
+        $this->chart['bar']['yaxis']['labels']['formatter'] = $this->getFormatLabel();
+        $this->chart['donut']['yaxis']['labels']['formatter'] = $this->getFormatLabel('percent');
     }
 
     public function setYear()
