@@ -35,16 +35,30 @@ class Contact extends Form
 
         $this->label = trans_choice('general.' . Str::plural($this->type), 1);
 
-        $this->contacts = Model::type($this->type)->enabled()->orderBy('name')->take(setting('default.select_limit'))->get();
+        $this->contacts = Model::type($this->type)->enabled()->orderBy('name')->take(setting('default.select_limit'))->pluck('name', 'id');
 
         $model = $this->getParentData('model');
 
-        if (! empty($model)) {
-            $this->selected = $model->contact_id;
+        $contact_id = old('contact.id', old('contact_id', null));
 
-            if (! $this->contacts->has($model->contact_id) && ($contact = $model->contact)) {
+        if (! empty($contact_id)) {
+            $this->selected = $contact_id;
+
+            if (! $this->contacts->has($contact_id)) {
+                $contact = Model::find($contact_id);
+
                 $this->contacts->put($contact->id, $contact->name);
             }
+        }
+
+        if (! empty($model) && ! empty($model->contact_id)) {
+            $this->selected = $model->contact_id;
+
+            $selected_contact = $model->contact;
+        }
+
+        if (! empty($selected_contact) && ! $this->contacts->has($selected_contact->id)) {
+            $this->contacts->put($selected_contact->id, $selected_contact->name);
         }
 
         return view($this->view);

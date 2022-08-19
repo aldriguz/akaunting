@@ -34,7 +34,7 @@
                             <div role="tablist" class="flex flex-wrap">
                                 @php $is_active = true; @endphp
 
-                                <div class="swiper swiper-links">
+                                <div class="swiper swiper-links w-full">
                                     <div class="swiper-wrapper">
                                         @foreach ($payment_methods as $key => $name)
                                             @stack('invoice_{{ $key }}_tab_start')
@@ -105,7 +105,7 @@
                                         @foreach ($invoice->transactions as $transaction)
                                             <div class="my-2">
                                                 <span>
-                                                    <x-link href="{{ \URL::signedRoute('portal.payments.show', [$transaction->id]) }}" class="text-black bg-no-repeat bg-0-2 bg-0-full hover:bg-full-2 bg-gradient-to-b from-transparent to-black transition-backgroundSize" override="class">
+                                                    <x-link href="{{ \URL::signedRoute('signed.payments.show', [$transaction->id]) }}" class="text-black bg-no-repeat bg-0-2 bg-0-full hover:bg-full-2 bg-gradient-to-b from-transparent to-black transition-backgroundSize" override="class">
                                                         <x-date :date="$transaction->paid_at" />
                                                     </x-link>
                                                     - {!! trans('documents.transaction', [

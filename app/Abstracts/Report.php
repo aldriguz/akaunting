@@ -141,13 +141,15 @@ abstract class Report
 
     public function getCategoryDescription()
     {
-        if (!empty($this->category_description)) {
+        if (! empty($this->category_description)) {
             return trans($this->category_description);
         }
 
         return $this->findTranslation([
             $this->category . '_desc',
             $this->category . '_description',
+            str_replace('general.', 'reports.', $this->category) . '_desc',
+            str_replace('general.', 'reports.', $this->category) . '_description',
         ]);
     }
 
@@ -197,6 +199,8 @@ abstract class Report
 
         $chart->setType('bar')
             ->setOptions($options)
+            ->setDefaultLocale($this->getDefaultLocaleOfChart())
+            ->setLocales($this->getLocaleTranslationOfChart())
             ->setLabels(array_values($this->dates))
             ->setDataset($this->tables[$table_key], 'column', array_values($this->footer_totals[$table_key]));
 
@@ -244,6 +248,8 @@ abstract class Report
 
         $chart->setType('donut')
             ->setOptions($options)
+            ->setDefaultLocale($this->getDefaultLocaleOfChart())
+            ->setLocales($this->getLocaleTranslationOfChart())
             ->setLabels(array_values($labels))
             ->setColors(array_values($colors))
             ->setDataset($this->tables[$table_key], 'donut', array_values($values));
@@ -285,7 +291,7 @@ abstract class Report
                 $width = 'w-4/12 col-4';
                 break;
             case 'monthly':
-                $width = 'col-1';
+                $width = 'col-1 w-20';
                 break;
         }
 
@@ -298,8 +304,19 @@ abstract class Report
 
     public function setChartLabelFormatter()
     {
-        $this->chart['bar']['yaxis']['labels']['formatter'] = $this->getFormatLabel();
-        $this->chart['donut']['yaxis']['labels']['formatter'] = $this->getFormatLabel('percent');
+        if (count($this->tables) > 1) {
+            foreach ($this->tables as $table_key => $table) {
+                if (empty($this->chart[$table_key])) {
+                    continue;
+                }
+
+                $this->chart[$table_key]['bar']['yaxis']['labels']['formatter'] = $this->getChartLabelFormatter();
+                $this->chart[$table_key]['donut']['yaxis']['labels']['formatter'] = $this->getChartLabelFormatter('percent');
+            }
+        } else {
+            $this->chart['bar']['yaxis']['labels']['formatter'] = $this->getChartLabelFormatter();
+            $this->chart['donut']['yaxis']['labels']['formatter'] = $this->getChartLabelFormatter('percent');
+        }
     }
 
     public function setYear()
